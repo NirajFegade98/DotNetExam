@@ -1,0 +1,299 @@
+Model Of  Product
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace DotNetLabExam.Models
+{
+    public class Products
+    {
+        [Key]
+        public int Productid { get; set; }
+
+        [DataType(DataType.Text)]
+        [Required(ErrorMessage ="Please enter Product Name")]
+        [Display(Name ="ProductName")]
+        public string ProductName { get; set; }
+
+        [Required(ErrorMessage = "Please enter Rate")]
+        [Display(Name = "Rate")]
+        public decimal Rate { get; set; }
+
+        [DataType(DataType.Text)]
+        [Required(ErrorMessage = "Please enter Description")]
+        [Display(Name = "Description")]
+        public string Description { get; set; }
+
+        [DataType(DataType.Text)]
+        [Required(ErrorMessage = "Please enter Category Name")]
+        [Display(Name = "CategoryName")]
+        public string CategoryName { get; set; }
+    }
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Question 1 :- Index 
+
+Controller Code Of Indx:-
+
+
+public ActionResult Index()
+        {
+            List<Products> lst = new List<Products>();
+            SqlConnection sc = new SqlConnection();
+            sc.ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=DotNetExam;Integrated Security=True";
+            sc.Open();
+            SqlCommand scm = new SqlCommand();
+            scm.Connection = sc;
+            scm.CommandType = System.Data.CommandType.StoredProcedure;
+            scm.CommandText = "displayProducts";
+            SqlDataReader dr = scm.ExecuteReader();
+            while (dr.Read())
+            {
+                lst.Add(new Products { Productid = (int)dr["Productid"], ProductName = (string)dr["ProductName"], Rate = (decimal)dr["Rate"], Description = (string)dr["Description"], CategoryName = (string)dr["CategoryName"] });
+            }
+            dr.Close();
+            sc.Close();
+            return View(lst);
+        }
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+View Of Index :- 
+
+@model IEnumerable<DotNetLabExam.Models.Products>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/mylayout.cshtml";
+}
+
+<h2 class="text-primary">Index</h2>
+
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Productid)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ProductName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Rate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CategoryName)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+<tr>
+    <td>
+        @Html.DisplayFor(modelItem => item.Productid)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.ProductName)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.Rate)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.Description)
+    </td>
+    <td>
+        @Html.DisplayFor(modelItem => item.CategoryName)
+    </td>
+    <td>
+        @Html.ActionLink("Edit", "Edit", new { id = item.Productid })
+    </td>
+</tr>
+}
+   
+</table>
+
+@Html.Partial("PartialView")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 2 :-Edit
+
+Controllers of Get and Post
+// GET: Products/Edit/5
+        public ActionResult Edit(int id)
+        {
+            Products obj = new Products();
+            SqlConnection sc = new SqlConnection();
+            sc.ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=DotNetExam;Integrated Security=True";
+            sc.Open();
+            SqlCommand scm = new SqlCommand();
+            scm.Connection = sc;
+            scm.CommandType = System.Data.CommandType.StoredProcedure;
+            scm.CommandText = "updatedetails";
+            scm.Parameters.AddWithValue("@id",id);
+            SqlDataReader dr = scm.ExecuteReader();
+            while (dr.Read())
+            {
+               obj = new Products { Productid = (int)dr["Productid"], ProductName = (string)dr["ProductName"], Rate = (decimal)dr["Rate"], Description = (string)dr["Description"], CategoryName = (string)dr["CategoryName"] };
+            }
+            dr.Close();
+            sc.Close();
+            return View(obj);           
+        }
+
+        // POST: Products/Edit/5
+        [HttpPost]
+        public ActionResult Edit(int id, Products obj)
+        {
+            SqlConnection sc = new SqlConnection();
+            sc.ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=DotNetExam;Integrated Security=True";
+            sc.Open();
+            SqlCommand scm = new SqlCommand();
+            scm.Connection = sc;
+            scm.CommandType = System.Data.CommandType.StoredProcedure;
+            scm.CommandText = "updateProducts";
+            scm.Parameters.AddWithValue("@id", id);
+            scm.Parameters.AddWithValue("@ProductName", obj.ProductName);
+            scm.Parameters.AddWithValue("@Rate", obj.Rate);
+            scm.Parameters.AddWithValue("@Description", obj.Description);
+            scm.Parameters.AddWithValue("@CategoryName", obj.CategoryName);
+            scm.ExecuteNonQuery();
+            sc.Close();
+            return RedirectToAction("Index");
+        }
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+View of Edit
+@model DotNetLabExam.Models.Products
+
+@{
+    ViewBag.Title = "Edit";
+    Layout = "~/Views/Shared/mylayout.cshtml";
+}
+
+<h2 class="text-primary">Edit Products</h2>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+<div class="form-horizontal">
+  
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.Productid)
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Productid, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.DisplayFor(model => model.Productid, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Productid, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProductName, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.ProductName, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ProductName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Rate, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Rate, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Rate, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.Description, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.CategoryName, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.EditorFor(model => model.CategoryName, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.CategoryName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Update" class="btn btn-default btn-primary" />
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+@Html.Partial("PartialView")
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Question 3-----(Layout Page)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title -ASP.NET Application mylayoutpage</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top bg-primary"style="background-color:brown">
+        <div class="container">
+            <div class="navbar-header">
+                
+                <h3 style="color:white">PRODUCT APP</h3>
+            </div>           
+        </div>
+    </div>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p class="text-warning">&copy;My Product APP With My layout page</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 4 (Partial View)
+
+<div>
+   
+    <h3>Created By (Niraj Fegade)</h3>
+    <h4>Center (JUHU)</h4>
+    <h5>Roll NO :- (210940520050)</h5>
+</div>
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Question 5 Web Api
+ 
+In the Screenshots 
